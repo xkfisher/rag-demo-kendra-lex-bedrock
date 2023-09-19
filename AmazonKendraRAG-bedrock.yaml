@@ -11,15 +11,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Template Amazon Kendra RAG.
 Parameters:
   LambdaCodeS3Bucket:
-    Default: leidos-rag-demo1
+    Default: llmeba
     Type: String
     Description: S3 bucket name where Lambda code (zip) and LangChain layer is uploaded/present
   LambdaCodeS3Key:
-    Default: lambda-orchestrator-bedrock-claude.zip
+    Default: cbp/lambda-orchestrator-bedrock-claude.zip
     Type: String
     Description: S3 Key for Lambda code (zip) file 
   LangChainLayerS3Key:
-    Default: langchainbedrocklayer.zip
+    Default: cbp/langchainbedrocklayer.zip
     Type: String
     Description: S3 Key for LangChain layer
   LambdaFunctionName:
@@ -141,35 +141,21 @@ Resources:
         - ''
         - - !Ref 'AWS::StackName'
           - '-DocsDSRole'
-  
-  #Docs Data Source
-  # KendraDocsDS:
-  #   Type: 'AWS::Kendra::DataSource'
-  #   Properties: 
-  #     DataSourceConfiguration: 
-  #       WebCrawlerConfiguration:
-  #         UrlInclusionPatterns:
-  #           - '.*https://docs.aws.amazon.com/kendra/.*'
-  #         Urls:
-  #            SiteMapsConfiguration:
-  #              SiteMaps:
-  #                - 'https://docs.aws.amazon.com/kendra/latest/dg/sitemap.xml'
-  #     IndexId: !GetAtt DocsKendraIndex.Id
-  #     Name: 'KendraDocsDS'
-  #     RoleArn: !GetAtt KendraDSRole.Arn
-  #     Type: 'WEBCRAWLER'
+
+  ##Attach S3 Data Source
   KendraDocsDS:
     Type: 'AWS::Kendra::DataSource'
     Properties: 
       DataSourceConfiguration: 
-        S3DataSourceConfiguration
-          AccessControlListConfiguration: 
-            AccessControlListConfiguration
+        S3Configuration:
           BucketName: !Ref LambdaCodeS3Bucket
+          DocumentsMetadataConfiguration:
+            S3Prefix: 'cbp/'
       IndexId: !GetAtt DocsKendraIndex.Id
       Name: 'KendraDocsDS'
       RoleArn: !GetAtt KendraDSRole.Arn
       Type: 'S3'
+      
     
   DataSourceSyncLambdaRole:
     Type: AWS::IAM::Role
