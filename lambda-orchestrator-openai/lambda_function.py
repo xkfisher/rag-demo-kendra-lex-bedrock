@@ -32,9 +32,8 @@ from langchain.schema import AgentAction, AgentFinish, OutputParserException
 from langchain.docstore.base import Docstore
 from langchain.llms import Bedrock
 from langchain.memory import ConversationBufferWindowMemory
-
-
-
+from langchain.chat_models import ChatOpenAI
+# from langchain.llms import OpenAI
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -51,25 +50,25 @@ tools = [
     )
 ]
 
-bedrock_client = boto3.client(service_name='bedrock',
-                              region_name='us-east-1')
+# bedrock_client = boto3.client(service_name='bedrock',
+#                               region_name='us-east-1')
 
-llm = Bedrock(
-    client=bedrock_client,
-    model_id="anthropic.claude-v2",
-    model_kwargs={
-            "max_tokens_to_sample":300,
+# llm = Bedrock(
+#     client=bedrock_client,
+#     model_id="amazon.titan-tg1-large",
+#     model_kwargs={
+#             "max_tokens_to_sample":512,
             
-        },
-)
+#         },
+# )
+
+llm = ChatOpenAI(
+    temperature = 0.0,
+    model_name="gpt-3.5-turbo",
+    openai_api_key = "Your OpenAI API Key Here")
 
 # Set up the base template
 template = config.config.template
-
-    
-
-
-
 
 
 def get_session_attributes(intent_request):
@@ -86,8 +85,6 @@ def lambda_handler(event, context):
     logger.debug('<<help_desk_bot> lambda_handler: session_attributes = ' + json.dumps(session_attributes))
     
     currentIntent = event['sessionState']['intent']['name']
-    
-    
     
     
     if currentIntent is None:
@@ -122,7 +119,8 @@ def query_agent(question):
     agent = LLMSingleActionAgent(
         llm_chain=llm_chain, 
         output_parser=output_parser,
-        stop=["\nObservation:", "\nNew", "\nExample", "\nHuman", "---------------"], 
+        stop = ["---"],
+        # stop=["\nObservation:", "\nNew", "\nExample", "\nHuman", "---------------"], 
         allowed_tools=tool_names
     )
 
